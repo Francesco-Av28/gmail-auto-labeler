@@ -1,0 +1,9 @@
+# Personal credentials and mailbox data: never commit
+credentials.json
+token.json
+stato.json
+messaggi.csv
+piano.csv
+piano_riordino.xlsx
+__pycache__/
+~$*

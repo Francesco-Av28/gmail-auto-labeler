@@ -1,0 +1,54 @@
+{
+  "_nota": "Configurazione di RIORDINO EMAIL. Modificare liberamente: le regex non distinguono maiuscole/minuscole. Le chiavi che iniziano con _ sono commenti.",
+
+  "query_estrazione": "-in:draft -in:chats",
+
+  "_nota_fasce": "Ogni conversazione viene valutata sull'anno del suo ULTIMO messaggio. La prima fascia che contiene l'anno decide l'azione: 'archivio_per_anno' = etichetta <prefisso>/<anno>; 'classifica' = rubrica, poi nomi, poi regole; 'nessuna' = non toccare. Anni fuori da tutte le fasce: non toccati.",
+  "fasce_anni": [
+    {"da": 1990, "a": 2022, "azione": "archivio_per_anno", "prefisso": "ARCHIVIO"},
+    {"da": 2023, "a": 2025, "azione": "classifica"},
+    {"da": 2026, "a": 2100, "azione": "nessuna"}
+  ],
+
+  "togli_dalla_posta_in_arrivo": true,
+
+  "_nota_rubrica": "Facoltativa. CSV con separatore ; e colonne CONTATTO;EMAIL (piu' indirizzi separati da virgola). Le conversazioni con quegli indirizzi vanno in <etichetta_madre_rubrica>/<CONTATTO>. Il nome del contatto viene cercato anche in oggetto e anteprima.",
+  "rubrica_csv": "rubrica_esempio.csv",
+  "etichetta_madre_rubrica": "CONTATTI",
+  "cerca_nomi_rubrica_nei_testi": true,
+
+  "_nota_regole": "Conversazioni non abbinate alla rubrica: la prima regola che combacia (mittente OPPURE oggetto) decide la sottoetichetta di <etichetta_madre_regole>. Lasciare vuoto un campo per non usarlo.",
+  "etichetta_madre_regole": "ARCHIVIO PER TIPO",
+  "regole": [
+    {"etichetta": "BANCHE E PAGAMENTI",
+     "mittente": "banca|bank|paypal|satispay|nexi|postepay|carta",
+     "oggetto": "BONIFICO|ESTRATTO CONTO|CARTA DI CREDITO|ADDEBITO|\\bSDD\\b|MOVIMENT[IO]|SALDO"},
+    {"etichetta": "FISCO E PREVIDENZA",
+     "mittente": "agenziaentrate|inps|inail|riscossione",
+     "oggetto": "AGENZIA (DELLE )?ENTRATE|\\bF24\\b|\\bIVA\\b|DICHIARAZION|\\bINPS\\b|\\bINAIL\\b|CONTRIBUT|CARTELL[AE]"},
+    {"etichetta": "FATTURE ELETTRONICHE",
+     "mittente": "fatturapa|sdi|fatturazione",
+     "oggetto": "FATTUR[AE]\\b|NOTA DI CREDITO|PROFORMA|CORRISPETTIV|QUIETANZ"},
+    {"etichetta": "UTENZE E ABBONAMENTI",
+     "mittente": "enel|eni|edison|hera|a2a|tim\\.|vodafone|windtre|fastweb|iliad|netflix|spotify",
+     "oggetto": "BOLLETT[AE]|CONTATOR|RINNOVO|ABBONAMENT|CANONE\\b|LICENZ[AE]"},
+    {"etichetta": "ACQUISTI ONLINE",
+     "mittente": "amazon|ebay|zalando|shop|store",
+     "oggetto": "ORDINE (N|NUMERO|#)|SPEDIZIONE|CONSEGNA|IL TUO ORDINE|RESO\\b"},
+    {"etichetta": "PEC",
+     "mittente": "pec\\.|postacert|legalmail|cert\\.",
+     "oggetto": "POSTA CERTIFICATA"},
+    {"etichetta": "SICUREZZA E ACCOUNT",
+     "mittente": "accounts\\.google|security|noreply|no-reply|mailer-daemon",
+     "oggetto": "CODICE DI VERIFICA|AVVISO DI SICUREZZA|NUOVO ACCESSO|PASSWORD|MANCATA CONSEGNA|UNDELIVERABLE"},
+    {"etichetta": "NEWSLETTER E PROMOZIONI",
+     "mittente": "newsletter|news@|marketing|promo|offerte",
+     "oggetto": "NEWSLETTER|OFFERT[AE]|SCONTO|PROMO|\\bSALDI\\b|BLACK FRIDAY"}
+  ],
+
+  "_nota_finali": "Etichette per le conversazioni che nessuna regola riconosce: mittente = io stesso, mittente con casella personale (gmail, libero...), tutto il resto.",
+  "etichetta_autoinviate": "AUTOINVIATE",
+  "etichetta_contatti_personali": "CONTATTI DA CLASSIFICARE",
+  "regex_caselle_personali": "@(gmail|libero|virgilio|hotmail|outlook|live|yahoo|tiscali|alice|tin|icloud)\\.",
+  "etichetta_altro": "ALTRO"
+}

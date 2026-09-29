@@ -1,0 +1,95 @@
+RIORDINO EMAIL - riordino automatico di un archivio Gmail con etichette
+======================================================================
+
+Cosa fa
+-------
+Legge i metadati delle email (mittente, destinatari, oggetto, anteprima, data) tramite le
+API ufficiali di Gmail e mette ogni conversazione sotto un'etichetta, secondo regole
+scritte in configurazione.json:
+  - vecchie conversazioni     -> ARCHIVIO/<anno>
+  - conversazioni recenti     -> CONTATTI/<nome> se il mittente/destinatario e' in rubrica
+                                 (o il nome del contatto compare nell'oggetto),
+                                 altrimenti ARCHIVIO PER TIPO/<gruppo> con regole su
+                                 mittente e oggetto (banche, fisco, fatture, utenze, PEC,
+                                 acquisti, newsletter...), infine AUTOINVIATE / CONTATTI DA
+                                 CLASSIFICARE / ALTRO
+  - anno in corso             -> non toccato
+L'anno di una conversazione e' quello del suo ULTIMO messaggio.
+NULLA VIENE MAI CANCELLATO: si aggiungono etichette e (se previsto) si toglie la
+conversazione dalla Posta in arrivo. Il testo delle email non viene scaricato.
+
+Contenuto
+---------
+  riordino_email.py        il programma
+  configurazione.json      fasce di anni, rubrica, regole, nomi delle etichette (da personalizzare)
+  rubrica_esempio.csv      rubrica di esempio (CONTATTO;EMAIL) con contatti inventati
+  prova_offline.py         collaudo senza internet su una casella finta (21 controlli)
+  demo\                    piano_demo.xlsx e messaggi_esempio.csv prodotti dal collaudo
+  requisiti.txt            librerie Python
+  INSTALLA.bat             installa le librerie ed esegue il collaudo
+  AVVIA.bat                menu con le fasi
+
+Installazione
+-------------
+1. Installare Python 3.10 o successivo da python.org (spuntare "Add python.exe to PATH").
+2. Estrarre lo ZIP (tasto destro -> Estrai tutto) in una cartella a scelta.
+3. Doppio clic su INSTALLA.bat: installa le librerie e lancia il collaudo offline.
+   Per vedere un esempio di risultato senza Gmail: aprire demo\piano_demo.xlsx.
+
+Credenziali Google (una volta sola, gratis)
+-------------------------------------------
+Ogni utente usa le PROPRIE credenziali: il pacchetto non ne contiene.
+1. Andare su https://console.cloud.google.com con l'account Gmail da riordinare
+   e creare un progetto (es. "Riordino email").
+2. "API e servizi" -> "Libreria" -> cercare "Gmail API" -> Abilita.
+3. "API e servizi" -> "Schermata consenso OAuth": tipo Esterno, nome app a piacere,
+   la propria email come supporto e contatto; in "Utenti di test" aggiungere la
+   propria casella Gmail. (L'app resta "in test": va bene per uso personale.)
+4. "API e servizi" -> "Credenziali" -> "Crea credenziali" -> "ID client OAuth" ->
+   tipo "App desktop" -> Crea -> "Scarica JSON".
+5. Rinominare il file scaricato in credentials.json e metterlo in questa cartella.
+6. AVVIA.bat -> 1 (Login): si apre il browser, scegliere l'account e consentire.
+   Google avvisa "app non verificata": Avanzate -> Vai a ... (e' la propria app).
+   Viene creato token.json: NON condividerlo (da' accesso alla casella).
+Per revocare l'accesso: https://myaccount.google.com/permissions
+
+Uso (AVVIA.bat oppure riga di comando)
+--------------------------------------
+  1  python riordino_email.py --login     autorizzazione
+  2  python riordino_email.py --estrai    scarica i metadati in messaggi.csv (SOLA LETTURA)
+                                          filtro: "query_estrazione" nel config o --query "..."
+                                          se si interrompe, rilanciato riprende da dove era
+  3  python riordino_email.py --piano     PROVA A SECCO: piano.csv + piano_riordino.xlsx,
+                                          NESSUNA modifica alla casella. Controllare l'Excel,
+                                          correggere configurazione/rubrica e rilanciare.
+  4  python riordino_email.py --esegui    applica il piano: chiede di scrivere SI.
+                                          --anni 2013-2022 oppure --anni 2023,2024 per procedere
+                                          a pezzi; se interrotto, rilanciato salta le gia' fatte.
+Consiglio: provare prima --esegui su un solo anno e controllare in Gmail.
+
+Personalizzare le regole (configurazione.json)
+----------------------------------------------
+  fasce_anni       per ogni periodo: "archivio_per_anno" (etichetta <prefisso>/<anno>),
+                   "classifica" (rubrica, nomi, regole) oppure "nessuna".
+  rubrica_csv      CSV con separatore ; e colonne CONTATTO;EMAIL (piu' email separate da virgola).
+                   Lasciare "" per non usarla. Le etichette gia' esistenti sotto la madre
+                   rubrica (es. CONTATTI/XYZ) vengono cercate anch'esse per nome.
+  regole           in ordine di priorita': etichetta + regex sul mittente e/o sull'oggetto.
+                   Nelle regex la barra rovesciata va scritta doppia (\\b = inizio parola).
+  togli_dalla_posta_in_arrivo   true/false.
+
+Limiti e quote di Google
+------------------------
+- Gmail API: circa 15.000 "unita'" al minuto per utente; leggere un messaggio costa 5 unita',
+  quindi al massimo ~3.000 messaggi/minuto. Il programma resta sotto (~750/min) e, se Google
+  risponde "quota superata", fa una pausa e riprova da solo. 50.000 email = circa 1 ora.
+- Modifiche: a blocchi di 1.000 messaggi per chiamata (limite di batchModify).
+- Il riconoscimento per nome e per regole e' euristico: controllare sempre il piano Excel
+  prima di --esegui. I nomi molto corti vengono riconosciuti solo con la forma giuridica
+  accanto (SRL, SNC...) per evitare falsi abbinamenti.
+- Funziona solo con Gmail / Google Workspace (non con Outlook o altri provider).
+
+File che contengono dati personali (non condividerli)
+-----------------------------------------------------
+credentials.json, token.json, stato.json, messaggi.csv, piano.csv, piano_riordino.xlsx,
+esecuzione.log, la propria rubrica.
